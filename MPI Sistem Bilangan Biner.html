@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MPI Sistem Bilangan Biner</title>
+<style>
+:root{--bg:#e8f5ff;--ink:#12324a;--card:#fff;--o:#ff7a59;--b:#2f80ed;--g:#27ae60;--r:#e74c3c;--mut:#5b7a92;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0f2233;--ink:#e6f2fb;--card:#17344b;--mut:#9fbad0}}
+*{box-sizing:border-box}html,body{margin:0}
+body{font-family:"Segoe UI",system-ui,Arial,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+header{display:flex;align-items:center;gap:18px;padding:12px 24px;background:linear-gradient(90deg,#2f80ed,#56b4ff);color:#fff;flex-wrap:wrap}
+header h1{font-size:1.25rem;margin:0;flex:1;min-width:200px}
+.tab{border:0;background:rgba(255,255,255,.2);color:#fff;font-weight:700;font-size:1rem;padding:10px 20px;border-radius:999px;cursor:pointer;transition:.2s}
+.tab:hover{background:rgba(255,255,255,.35)}.tab.act{background:#fff;color:#2f80ed;box-shadow:0 3px 8px #0003}
+main{max-width:1280px;margin:0 auto;padding:20px}
+.page{display:none}.page.on{display:block;animation:fi .35s}@keyframes fi{from{opacity:0;transform:translateY(8px)}}
+.card{background:var(--card);border-radius:22px;padding:22px;box-shadow:0 6px 18px #0002;margin-bottom:20px}
+.card h2{margin:0 0 4px}.sub{color:var(--mut);margin:0 0 14px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:20px}@media(max-width:900px){.two{grid-template-columns:1fr}}
+#sl{width:100%;accent-color:var(--b);height:8px}
+.ticks{display:flex;justify-content:space-between;font-weight:700;margin:4px 0 12px}
+.ticks span{cursor:pointer;padding:2px 8px;border-radius:8px}.ticks span.a{background:var(--b);color:#fff}
+.formula{font-size:1.5rem;font-weight:800;text-align:center;margin:8px 0}.total{text-align:center;font-size:2.6rem;font-weight:900;color:var(--o)}
+#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(20px,1fr));gap:3px;max-height:250px;overflow:auto;padding:8px;background:#0001;border-radius:14px}
+#grid i{aspect-ratio:1;border-radius:4px;background:var(--b);animation:pop .4s backwards}
+#grid i.n{background:var(--o)}#grid i.out{animation:out .25s forwards}
+@keyframes pop{from{transform:scale(0);opacity:0}}@keyframes out{to{transform:scale(0);opacity:0}}
+.legend{font-size:.85rem;color:var(--mut);margin:6px 0}.legend b{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:middle}
+.expl{background:#2f80ed22;border-radius:14px;padding:12px;margin-top:10px;line-height:1.5}
+.calc{display:grid;grid-template-columns:1fr 70px 1fr;gap:10px;align-items:stretch}@media(max-width:700px){.calc{grid-template-columns:1fr}}
+.pn{border:3px solid var(--b);border-radius:18px;padding:14px}.pn.r{border-color:var(--o)}
+select,.pn input{width:100%;font-size:1.1rem;padding:10px;border-radius:12px;border:2px solid #9ab;background:var(--card);color:var(--ink);margin:6px 0}
+.pn input{font-size:1.6rem;font-family:monospace;font-weight:700}
+.mid{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-size:2rem;font-weight:900}
+.btn{border:0;background:var(--b);color:#fff;font-weight:700;font-size:1rem;padding:10px 18px;border-radius:12px;cursor:pointer;box-shadow:0 3px 0 #1b5bb5}.btn:active{transform:translateY(2px)}
+.btn.o{background:var(--o);box-shadow:0 3px 0 #c9532f}
+.err{color:var(--r);font-weight:700;min-height:1.3em;font-size:.9rem}.eq{text-align:center;font-weight:800;font-size:1.25rem;margin-top:12px;min-height:1.6em}
+.info{color:var(--mut);font-size:.9rem}
+/* game */
+.gtop{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center}
+.tm{background:var(--card);border-radius:18px;padding:10px 14px;box-shadow:0 4px 12px #0002;border-top:6px solid}
+.tm.t0{border-color:var(--o)}.tm.t1{border-color:var(--b)}
+.tm input{font-size:1.2rem;font-weight:800;border:0;background:transparent;color:var(--ink);width:60%}
+.tm .s{float:right;font-size:2rem;font-weight:900}
+.bar{height:14px;background:#0002;border-radius:9px;overflow:hidden;margin-top:6px}.bar div{height:100%;width:0;transition:width .6s}
+.t0 .bar div{background:var(--o)}.t1 .bar div{background:var(--b)}
+.ctr{text-align:center;font-weight:800}.ctr .tmr{font-size:1.6rem}
+.ctl{display:flex;gap:6px;align-items:center;justify-content:center;margin-top:4px}.ctl button{border:0;border-radius:10px;padding:5px 9px;cursor:pointer;font-size:1rem}.ctl input{width:80px}
+.stage{position:relative;height:300px;margin:14px 0;border-radius:22px;overflow:hidden;background:linear-gradient(#bfe6ff,#e8f8ff 40%);display:flex}
+.water{position:absolute;left:0;right:0;top:130px;bottom:0;background:linear-gradient(#3fa9f5cc,#0b4f93);z-index:0}
+.side{position:relative;flex:1;z-index:1}
+.av{position:absolute;left:50%;top:6px;font-size:64px;transform:translateX(-50%);transform-origin:50% 0;transition:transform 2s;line-height:1;z-index:2}
+.av b{position:absolute;right:-30px;top:6px;font-size:40px}
+.line{position:absolute;left:calc(50% + 28px);top:60px;width:2px;background:#333;height:180px;transition:height .8s;z-index:1}
+.fish{position:absolute;left:calc(50% + 28px);top:240px;font-size:44px;transform:translateX(-50%);transition:top .8s;z-index:1}
+.av.pull{animation:pull .7s}.av.fail{animation:fail .6s}.line.fail{animation:lsh .5s}.fish.jump{animation:jmp .5s infinite alternate}
+@keyframes pull{30%{transform:translateX(-50%) rotate(-14deg)}60%{transform:translateX(-50%) rotate(8deg)}}
+@keyframes fail{25%{transform:translateX(-50%) rotate(14deg) translateY(6px)}60%{transform:translateX(-50%) rotate(-6deg)}}
+@keyframes lsh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}@keyframes jmp{to{transform:translateX(-50%) rotate(25deg) translateY(-12px)}}
+.av.big{transform:translateX(-50%) scale(1.8)}
+.qs{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:800px){.qs{grid-template-columns:1fr}}
+.qp{background:var(--card);border-radius:18px;padding:16px;border:5px solid transparent;box-shadow:0 4px 12px #0002;transition:.2s}
+.qp.ok{border-color:var(--g);background:#27ae6022;box-shadow:0 0 22px #27ae6088}.qp.bad{border-color:var(--r);animation:shk .5s}
+@keyframes shk{20%,60%{transform:translateX(-9px)}40%,80%{transform:translateX(9px)}}
+.qn{font-weight:800;color:var(--mut);font-size:.85rem}.qt{font-size:1.15rem;font-weight:700;margin:6px 0 10px;min-height:3em}
+.op{display:block;width:100%;text-align:left;padding:10px 12px;margin:6px 0;border-radius:12px;border:2px solid #9ab;background:var(--card);color:var(--ink);font-size:1rem;cursor:pointer}
+.op:hover:not(:disabled){background:#2f80ed22}.op:disabled{cursor:default;opacity:.75}.op b{display:inline-block;width:24px;color:var(--b)}
+.t1p .op b{color:var(--o)}
+#ov{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;z-index:50;text-align:center;padding:20px}
+#ov.on{display:flex}.ovb{background:var(--card);border-radius:26px;padding:30px 40px;max-width:560px}
+.ovb h2{font-size:2.6rem;margin:0 0 10px}.ovb .btn{margin:6px}
+.cf{position:fixed;top:-20px;width:10px;height:14px;z-index:60;animation:fall linear forwards}@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+ol li,ul li{margin:6px 0;line-height:1.5}.ic{font-size:2rem}
+</style></head><body>
+<header><h1>🔢 MPI Informatika · Sistem Bilangan Biner</h1>
+<button class="tab act" data-p="sim">🧮 SIMULASI BINER</button><button class="tab" data-p="game">🎣 GAME BINER</button><button class="tab" data-p="help">📖 PETUNJUK</button></header>
+<main>
+<section class="page on" id="sim">
+<div class="two">
+<div class="card"><h2>Simulasi Perpangkatan Dua</h2><p class="sub">Geser slider dan lihat kotak bertambah dua kali lipat.</p>
+<input type="range" id="sl" min="1" max="8" value="1"><div class="ticks" id="ticks"></div>
+<div class="formula" id="fm"></div><div class="total" id="tot"></div>
+<div class="legend"><b style="background:var(--b)"></b> kotak sebelumnya &nbsp; <b style="background:var(--o)"></b> kotak yang baru bertambah</div>
+<div id="grid"></div><div class="expl" id="ex"></div></div>
+<div class="card"><h2>Kalkulator Sistem Bilangan</h2><p class="sub">Bandingkan dua sistem bilangan. Ubah salah satu kotak, yang lain ikut berubah.</p>
+<div class="calc">
+<div class="pn"><select id="sL"></select><div class="info" id="bL"></div><input id="iL" autocomplete="off" placeholder="0"><div class="err" id="eL"></div><div class="info" id="dL"></div></div>
+<div class="mid">=<button class="btn o" id="sw" title="Tukar posisi">⇄</button><span id="ind">✔</span></div>
+<div class="pn r"><select id="sR"></select><div class="info" id="bR"></div><input id="iR" autocomplete="off" placeholder="0"><div class="err" id="eR"></div><div class="info" id="dR"></div></div>
+</div><div class="eq" id="eq"></div><div class="err" id="eS"></div></div>
+</div></section>
+
+<section class="page" id="game">
+<div class="gtop">
+<div class="tm t0"><span class="s" id="sc0">0</span><input id="nm0" value="Tim 1" maxlength="14"><div class="info"><span id="pg0">0</span>/10 jawaban benar</div><div class="bar"><div id="br0"></div></div></div>
+<div class="ctr"><div class="tmr" id="tmr">⏱ 00:00</div><div class="ctl"><button id="bm" title="Play/Pause musik">🎵</button><button id="mu" title="Mute">🔊</button><input type="range" id="vol" min="0" max="1" step=".05" value=".6"></div></div>
+<div class="tm t1"><span class="s" id="sc1">0</span><input id="nm1" value="Tim 2" maxlength="14"><div class="info"><span id="pg1">0</span>/10 jawaban benar</div><div class="bar"><div id="br1"></div></div></div>
+</div>
+<div class="stage"><div class="water"></div>
+<div class="side"><div class="av" id="av0">🧒<b>🎣</b></div><div class="line" id="ln0"></div><div class="fish" id="fs0">🐟</div></div>
+<div class="side"><div class="av" id="av1">👧<b>🎣</b></div><div class="line" id="ln1"></div><div class="fish" id="fs1">🐠</div></div></div>
+<div class="qs"><div class="qp" id="qp0"></div><div class="qp t1p" id="qp1"></div></div>
+</section>
+
+<section class="page" id="help">
+<div class="two">
+<div class="card"><div class="ic">🧮</div><h2>Simulasi Biner</h2><ol><li>Geser slider atau klik angka pangkat (1 sampai 8).</li><li>Kotak bertambah saat pangkat naik dan berkurang saat turun.</li><li>Kotak oranye adalah kotak yang baru bertambah. Setiap naik satu pangkat, jumlah kotak menjadi dua kali lipat.</li><li>Baca rumus, total kotak, dan penjelasan di bawah slider.</li></ol></div>
+<div class="card"><div class="ic">🔁</div><h2>Kalkulator Sistem Bilangan</h2><ol><li>Pilih dua sistem bilangan yang berbeda (Biner, Desimal, Oktal, Heksadesimal).</li><li>Ketik angka di salah satu kotak. Kotak lainnya terisi otomatis.</li><li>Biner: 0-1. Oktal: 0-7. Desimal: 0-9. Heksadesimal: 0-9 dan A-F.</li><li>Tekan ⇄ untuk menukar posisi. Contoh: 1010 (Biner) = 10 (Desimal).</li></ol></div></div>
+<div class="card"><div class="ic">🎣</div><h2>Game Biner</h2><ol><li>Dua tim bermain bersamaan. Tim 1 di kiri dan Tim 2 di kanan. Nama tim bisa diganti.</li><li>Tekan <b>Mulai</b>, lalu setiap tim menjawab soalnya sendiri dengan mengklik pilihan jawaban.</li><li>Jawaban benar: panel hijau, pemancing menarik tali, ikan mendekat, dan skor +1.</li><li>Jawaban salah: panel merah dan bergetar, skor tidak bertambah. Soal berikutnya muncul otomatis.</li><li>Tim pertama yang mencapai <b>10 jawaban benar</b> menang. Jika dua tim mencapai 10 bersamaan, hasilnya seri.</li><li>Atur musik dengan tombol 🎵 (play/pause), 🔊 (mute), dan slider volume.</li></ol></div>
+</section>
+</main>
+<div id="ov"><div class="ovb" id="ovb"></div></div>
+
+<script id="data">
+// DATA SOAL (dipisah dari logika). Format: [pertanyaan, [A,B,C,D], indeksKunci(0=A)]
+const Q=[
+["Apa arti data yang paling tepat?",["Pendapat pribadi","Pernyataan yang diterima apa adanya","Rumus matematika rumit","Rahasia negara"],1],
+["Sumber data yang didapat dari manusia/individu dinamakan...",["Dokumen","Lokasi","Narasumber atau responden","Peristiwa"],2],
+["Mengamati aktivitas jual beli di pasar secara langsung adalah contoh sumber data dari...",["Aktivitas/peristiwa","Arsip lama","Kuesioner online","Komputer"],0],
+["Buku rapor atau arsip surat tertulis termasuk jenis sumber data...",["Narasumber","Tempat","Dokumen atau arsip","Suara"],2],
+["Data suhu udara di suatu tempat wisata berasal dari sumber data...",["Narasumber","Tempat atau lokasi","Responden","Wawancara"],1],
+["Perbincangan antara dua orang atau lebih untuk mengumpulkan informasi disebut...",["Survei","Observasi","Wawancara","Studi dokumen"],2],
+["Mengumpulkan data dari banyak responden menggunakan daftar pertanyaan tertulis dinamakan...",["Wawancara","Survei","Observasi","Membaca buku"],1],
+["Cara mengumpulkan data dengan mengamati objek secara langsung di lapangan disebut...",["Observasi","Studi dokumen","Survei","Wawancara"],0],
+["Mengambil data secara tidak langsung dari dokumen atau arsip yang sudah ada disebut...",["Wawancara","Observasi","Studi dokumen","Survei langsung"],2],
+["Manakah yang bukan metode pengumpulan data?",["Wawancara","Observasi","Menghapus file","Survei"],2],
+["Apa tujuan utama membersihkan data (data cleaning)?",["Menghapus data asli","Memperbaiki kesalahan, duplikat, atau data tidak valid","Membuat data semakin rumit","Mengubah data jadi biner"],1],
+["Jika ada nama siswa yang tercatat dua kali secara persis, tindakan pembersihan data yang tepat adalah...",["Membiarkannya","Menghapus data duplikat","Menambah data baru lagi","Mengubahnya jadi angka"],1],
+["Kolom tinggi badan diisi huruf padahal harusnya angka. Penanganan hal ini masuk tahap...",["Menentukan data","Membersihkan data","Visualisasi","Pengumpulan data"],1],
+["Apa arti dari tahap “analisis data”?",["Membuang seluruh catatan","Meneliti dan mengelompokkan data untuk menemukan pola","Mencetak kertas kosong","Menyembunyikan informasi"],1],
+["Setelah dianalisis, langkah selanjutnya adalah menginterpretasikan data, artinya...",["Menjelaskan makna atau menarik kesimpulan","Membuang hasil analisis","Mengubah data jadi gambar","Mengunduh data baru"],0],
+["Jika rata-rata nilai kelas tinggi, interpretasinya adalah...",["Semua siswa bodoh","Kemampuan kelas tersebut secara umum baik","Pelajaran dihapus","Guru tidak mengajar"],1],
+["Mengubah data menjadi bentuk gambar atau tampilan visual agar mudah dibaca disebut...",["Visualisasi data","Enkripsi","Hapus data","Arsip manual"],0],
+["Urutan tahapan pengolahan data yang benar adalah...",["Analisis - Kumpul - Bersih","Tentukan - Kumpul - Bersihkan - Analisis - Interpretasi - Visualisasi","Visualisasi - Hapus - Kumpul","Bersihkan - Kumpul - Selesai"],1],
+["Apa arti singkatan dari “Bit”?",["Bytes","Binary / Biner (dua angka yaitu 0 dan 1)","Basic Information","Bigger Unit"],1],
+["Berapa jumlah angka dalam sistem bilangan biner?",["10 angka","8 angka","4 angka","2 angka (0 dan 1)"],3],
+["1 Byte (bita) terdiri dari berapa bit?",["2 bit","4 bit","8 bit","16 bit"],2],
+["Apa satuan ukuran terkecil dalam penyimpanan data komputer?",["Byte (atau bit)","KiloByte","MegaByte","GigaByte"],0],
+["1 KiloByte (KB) setara dengan berapa Byte?",["100 Byte","512 Byte","1024 Byte","2048 Byte"],2],
+["Satuan data di atas KiloByte (KB) dan di bawah GigaByte (GB) adalah?",["TeraByte","MegaByte (MB)","PetaByte","Bit"],1],
+["1 MegaByte (MB) sama dengan berapa KiloByte (KB)?",["100 KB","1024 KB","2000 KB","512 KB"],1],
+["Satuan ukuran data yang besarnya 1024 GigaByte (GB) disebut?",["KiloByte","MegaByte","TeraByte (TB)","PetaByte"],2],
+["Mana yang lebih besar ukurannya: 1 MegaByte (MB) atau 1 KiloByte (KB)?",["1 MegaByte (MB)","1 KiloByte (KB)","Keduanya sama besar","Tidak bisa dibandingkan"],0],
+["Urutan satuan data dari yang terkecil hingga MegaByte adalah...",["Bit -> Byte -> KiloByte (KB) -> MegaByte (MB)","MegaByte -> KiloByte -> Byte -> Bit","Byte -> Bit -> MegaByte -> KiloByte","KiloByte -> MegaByte -> Bit -> Byte"],0],
+["Berapa bit dalam 2 Byte?",["8 bit","10 bit","16 bit","32 bit"],2],
+["Satuan penyimpanan komputer yang berada di atas TeraByte (TB) adalah...",["GigaByte","MegaByte","PetaByte (PB)","KiloByte"],2],
+["Bilangan biner hanya mengenal angka...",["1 sampai 9","0 dan 1","A sampai Z","1 sampai 10"],1],
+["Kumpulan blok yang terdiri dari 8 bit disebut dengan istilah...",["Bit","Byte (bita)","Kilo","Hertz"],1],
+["Jika sebuah file foto berukuran 2 MB, berapa KiloByte ukurannya jika dikonversi secara kasar (1 MB = 1024 KB)?",["1000 KB","2048 KB","512 KB","4000 KB"],1],
+["Manakah di bawah ini yang merupakan singkatan dari KB?",["KiloBit","KiloByte","King Byte","Kernel Byte"],1],
+["Satuan dasar yang digunakan komputer untuk memproses semua informasi digital berbasis dua kondisi (hidup/mati) adalah...",["Bit (Binary Digit)","Desimal","Huruf alfabet","Meter"],0],
+["1 PetaByte (PB) setara dengan berapa TeraByte (TB)?",["100 TB","500 TB","1024 TB","2000 TB"],2],
+["Manakah satuan data yang paling besar di antara pilihan berikut?",["KiloByte (KB)","MegaByte (MB)","GigaByte (GB)","TeraByte (TB)"],3],
+["Mengapa komputer menggunakan sistem biner (0 dan 1)?",["Karena berkaitan dengan arus listrik (nyala dan mati)","Karena lebih mudah dibaca manusia","Karena angka 0 dan 1 sangat indah","Karena tidak ada angka lain"],0],
+["Jika kamu memiliki file dokumen berukuran 1024 Byte, itu artinya ukuran file tersebut sama dengan...",["1 MegaByte","1 KiloByte","1 GigaByte","1 Bit"],1],
+["Tahap awal sekali sebelum data diolah menjadi informasi yang berguna dalam analisis data adalah...",["Langsung menghapus data","Menentukan data dan mengumpulkan data","Mencetak gambar grafik","Mematikan komputer"],1]
+];
+</script>
+
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+/* NAV */
+function go(p){$$('.page').forEach(e=>e.classList.toggle('on',e.id==p));$$('.tab').forEach(t=>t.classList.toggle('act',t.dataset.p==p));scrollTo(0,0)}
+$$('.tab').forEach(t=>t.onclick=()=>go(t.dataset.p));
+
+/* SIMULASI PANGKAT */
+const sl=$('#sl'),grid=$('#grid');let cells=[];
+const sup=n=>'¹²³⁴⁵⁶⁷⁸'[n-1];
+$('#ticks').innerHTML=[1,2,3,4,5,6,7,8].map(n=>`<span data-n="${n}">2${sup(n)}</span>`).join('');
+$$('#ticks span').forEach(s=>s.onclick=()=>{sl.value=s.dataset.n;sim()});
+function sim(){const n=+sl.value,c=2**n,prev=cells.length;
+ while(cells.length>c){const e=cells.pop();e.classList.add('out');setTimeout(()=>e.remove(),250)}
+ while(cells.length<c){const d=document.createElement('i');d.style.animationDelay=Math.min((cells.length-prev)*6,500)+'ms';grid.appendChild(d);cells.push(d)}
+ const half=n>1?c/2:0;cells.forEach((d,i)=>d.classList.toggle('n',i>=half));
+ $$('#ticks span').forEach(s=>s.classList.toggle('a',+s.dataset.n==n));
+ $('#fm').innerHTML=`2<sup>${n}</sup> = `+(n<=5?Array(n).fill(2).join(' × ')+' = ':`2 dikalikan ${n} kali = `)+c;
+ $('#tot').textContent=c+' kotak';
+ $('#ex').textContent=`Pangkat ${n==1?'satu':n} berarti 2 dikalikan sebanyak ${n} kali, sehingga menghasilkan ${c}. Setiap kenaikan satu pangkat menyebabkan jumlah kotak menjadi dua kali lipat.`}
+sl.oninput=sim;sim();
+
+/* KALKULATOR */
+const B={bin:[2,'Biner',/^[01]+$/,'hanya menerima angka 0 dan 1'],dec:[10,'Desimal',/^[0-9]+$/,'hanya menerima angka 0 sampai 9'],oct:[8,'Oktal',/^[0-7]+$/,'hanya menerima angka 0 sampai 7'],hex:[16,'Heksadesimal',/^[0-9A-Fa-f]+$/,'hanya menerima angka 0-9 dan huruf A-F']};
+let K={L:'bin',R:'dec'};
+const iL=$('#iL'),iR=$('#iR'),sL=$('#sL'),sR=$('#sR');
+[sL,sR].forEach(s=>s.innerHTML=Object.keys(B).map(k=>`<option value="${k}">${B[k][1]} (Basis ${B[k][0]})</option>`).join(''));
+const big=(s,b)=>[...s].reduce((r,c)=>r*BigInt(b)+BigInt(parseInt(c,16)),0n);
+function labels(){sL.value=K.L;sR.value=K.R;$('#bL').textContent='Basis '+B[K.L][0];$('#bR').textContent='Basis '+B[K.R][0]}
+function upd(side){const o=side=='L'?'R':'L',sk=K[side],dk=K[o],src=side=='L'?iL:iR,dst=o=='L'?iL:iR;
+ const v=src.value.trim();['L','R'].forEach(x=>$('#e'+x).textContent='');$('#eS').textContent='';
+ if(!v){dst.value='';$('#dL').textContent=$('#dR').textContent=$('#eq').textContent='';$('#ind').textContent='…';return}
+ if(!B[sk][2].test(v)){$('#e'+side).textContent=`⚠ ${B[sk][1]} ${B[sk][3]}.`;dst.value='';$('#d'+side).textContent='';$('#d'+o).textContent='';$('#eq').textContent='';$('#ind').textContent='✖';return}
+ const n=big(v,B[sk][0]);dst.value=n.toString(B[dk][0]).toUpperCase();
+ $('#dL').textContent=$('#dR').textContent='Nilai desimal: '+n.toString();
+ const a=side=='L'?[v.toUpperCase(),dst.value]:[dst.value,v.toUpperCase()];
+ $('#eq').textContent=`${a[0]} (${B[K.L][1]}) = ${a[1]} (${B[K.R][1]})`;$('#ind').textContent='✔'}
+iL.oninput=()=>upd('L');iR.oninput=()=>upd('R');
+function chg(side){const o=side=='L'?'R':'L',s=side=='L'?sL:sR;
+ if(s.value==K[o]){const old=K[side];K[o]=old;$('#eS').textContent='Kedua sistem bilangan harus berbeda, posisi ditukar otomatis.'}
+ K[side]=s.value;labels();iL.value=iR.value='';upd('L');}
+sL.onchange=()=>chg('L');sR.onchange=()=>chg('R');
+$('#sw').onclick=()=>{[K.L,K.R]=[K.R,K.L];[iL.value,iR.value]=[iR.value,iL.value];labels();upd('L')};
+labels();upd('L');
+
+/* AUDIO (disintesis dengan WebAudio, tanpa file eksternal) */
+let AC,mg,vol=.6,muted=false,mus=null,mi=0;
+function ac(){if(!AC){AC=new(window.AudioContext||window.webkitAudioContext)();mg=AC.createGain();mg.connect(AC.destination);setv()}if(AC.state=='suspended')AC.resume()}
+function setv(){if(mg)mg.gain.value=muted?0:vol}
+function tone(f,d,ty='sine',v=.2,t0=0,f2){if(!AC)return;const o=AC.createOscillator(),g=AC.createGain(),t=AC.currentTime+t0;o.type=ty;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(mg);o.start(t);o.stop(t+d)}
+function noise(d,v){if(!AC)return;const n=AC.sampleRate*d,b=AC.createBuffer(1,n,AC.sampleRate),a=b.getChannelData(0);for(let i=0;i<n;i++)a[i]=Math.random()*2-1;const s=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain(),t=AC.currentTime;s.buffer=b;f.type='bandpass';f.frequency.value=1400;g.gain.setValueAtTime(.01,t);g.gain.linearRampToValueAtTime(v,t+.6);g.gain.linearRampToValueAtTime(v*.7,t+d*.7);g.gain.linearRampToValueAtTime(0,t+d);s.connect(f);f.connect(g);g.connect(mg);s.start()}
+const sfx={ok(){tone(660,.12,'triangle',.25);tone(880,.2,'triangle',.25,.12)},bad(){tone(220,.35,'sawtooth',.15,0,110)},pull(){tone(300,.5,'sine',.15,0,700)},win(){[523,659,784,1046,1318].forEach((f,i)=>tone(f,.45,'triangle',.25,i*.15));noise(3.5,.5)}};
+const NOTES=[262,330,392,440,392,330,294,349,440,523,440,349];
+function music(on){clearInterval(mus);mus=null;if(on){ac();mus=setInterval(()=>{tone(NOTES[mi++%NOTES.length],.32,'sine',.08)},340)}$('#bm').textContent=on?'⏸':'🎵'}
+$('#bm').onclick=()=>{ac();music(!mus)};
+$('#mu').onclick=()=>{ac();muted=!muted;$('#mu').textContent=muted?'🔇':'🔊';setv()};
+$('#vol').oninput=e=>{ac();vol=+e.target.value;setv()};
+
+/* GAME */
+let sc=[0,0],cur=[0,0],lock=[0,0],pool=[],over=false,started=false,sec=0,tmr;
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+function draw(avoid){let i=pool.findIndex(x=>x!==avoid);if(i<0){pool=shuf([...Q.keys()]);i=pool.findIndex(x=>x!==avoid)}return pool.splice(i,1)[0]}
+function show(t){cur[t]=draw(cur[1-t]);const [qt,op]=Q[cur[t]];
+ $('#qp'+t).innerHTML=`<div class="qn">Soal untuk <b>${$('#nm'+t).value||'Tim '+(t+1)}</b></div><div class="qt">${qt}</div>`+op.map((o,k)=>`<button class="op" data-k="${k}"><b>${'ABCD'[k]}.</b>${o}</button>`).join('');
+ $$('#qp'+t+' .op').forEach(b=>b.onclick=()=>ans(t,+b.dataset.k))}
+function place(t){const p=Math.min(sc[t],10),top=245-p*11.5;$('#fs'+t).style.top=top+'px';$('#ln'+t).style.height=(top-60)+'px';
+ $('#sc'+t).textContent=p;$('#pg'+t).textContent=p;$('#br'+t).style.width=p*10+'%'}
+function anim(el,c,ms){el.classList.remove(c);void el.offsetWidth;el.classList.add(c);setTimeout(()=>el.classList.remove(c),ms)}
+function ans(t,k){if(over||lock[t])return;lock[t]=1;ac();
+ const ok=k===Q[cur[t]][2],p=$('#qp'+t);$$('#qp'+t+' .op').forEach(b=>b.disabled=true);
+ if(ok){p.classList.add('ok');sc[t]++;place(t);anim($('#av'+t),'pull',700);sfx.ok();sfx.pull();if(sc[t]>=10){over=true;setTimeout(win,1100)}}
+ else{p.classList.add('bad');anim($('#av'+t),'fail',600);anim($('#ln'+t),'fail',500);sfx.bad()}
+ setTimeout(()=>{p.classList.remove('ok','bad');if(!over){lock[t]=0;show(t)}},ok?1100:900)}
+function ov(h){$('#ovb').innerHTML=h;$('#ov').classList.add('on')}
+function confetti(){const c=['#ff7a59','#2f80ed','#27ae60','#f2c94c','#bb6bd9'];for(let i=0;i<90;i++){const d=document.createElement('div');d.className='cf';d.style.cssText=`left:${Math.random()*100}vw;background:${c[i%5]};animation-duration:${2+Math.random()*3}s;animation-delay:${Math.random()*.8}s`;document.body.appendChild(d);setTimeout(()=>d.remove(),6000)}}
+function win(){clearInterval(tmr);const tie=sc[0]>=10&&sc[1]>=10,w=sc[0]>=10?0:1,n=[0,1].map(t=>$('#nm'+t).value||'Tim '+(t+1));
+ $$('.op').forEach(b=>b.disabled=true);
+ (tie?[0,1]:[w]).forEach(t=>{$('#av'+t).classList.add('big');const f=$('#fs'+t);f.style.top='40px';$('#ln'+t).style.height='0px';f.classList.add('jump')});
+ confetti();sfx.win();
+ setTimeout(()=>ov(`<h2>${tie?'🤝 SERI!':'🏆 '+n[w].toUpperCase()+' MENANG!'}</h2><p style="font-size:1.3rem"><b>${n[0]}</b>: ${sc[0]} &nbsp;|&nbsp; <b>${n[1]}</b>: ${sc[1]}</p><button class="btn o" id="again">🔄 Main Lagi</button><button class="btn" id="back">↩ Kembali ke Simulasi</button>`),1800);
+ setTimeout(()=>{$('#again').onclick=reset;$('#back').onclick=()=>{$('#ov').classList.remove('on');go('sim')}},1900)}
+function reset(){sc=[0,0];lock=[0,0];over=false;sec=0;pool=shuf([...Q.keys()]);
+ [0,1].forEach(t=>{$('#av'+t).classList.remove('big');$('#fs'+t).classList.remove('jump');place(t)});
+ show(0);show(1);$('#ov').classList.remove('on');ac();if(!mus)music(true);
+ clearInterval(tmr);$('#tmr').textContent='⏱ 00:00';tmr=setInterval(()=>{sec++;$('#tmr').textContent='⏱ '+String(sec/60|0).padStart(2,'0')+':'+String(sec%60).padStart(2,'0')},1000)}
+function startScreen(){ov(`<h2>🎣 Game Biner</h2><p>Dua tim berlomba menarik ikan. Tim yang lebih dulu menjawab <b>10 soal</b> dengan benar menang!</p><p class="info">${Q.length} soal tersedia, diacak tanpa pengulangan.</p><button class="btn o" id="go">▶ Mulai</button>`);
+ $('#go').onclick=()=>{started=true;reset()}}
+pool=shuf([...Q.keys()]);show(0);show(1);[0,1].forEach(place);
+$$('.tab').forEach(t=>{if(t.dataset.p=='game')t.addEventListener('click',()=>{if(!started)startScreen()})});
+</script></body></html>
